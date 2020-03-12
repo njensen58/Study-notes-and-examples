@@ -1,0 +1,210 @@
+///////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * @{EXAMPLE_1} : Factory Function Example
+*/   "We'll never use this approach"
+
+// 1. We are saving userCreator in global memory.
+function userCreator(name, score){
+  const newUser = {}
+  newUser.name = name
+  newUser.score = score
+  // this function gets closure(backpack) to have access to the score property later when its called.
+  newUser.increment = function(){
+    newUser.score++
+  }
+  return newUser
+}
+
+// 2. Define the constant user1 in global memory, and then add userCreator to the callstack and execute it.
+// 3. A new object is created, its name and score properties are assigned the argument values, and an increment function is 
+//    created and added to the object.
+// 4. userCreator returns the new object and it gets assigned to user1 in global memory
+const user1 = userCreator("Will", 3)
+
+// 5. Define constanst user2 in global memory, and repeat steps 2 - 4 assigning the returned object to user2.
+const user2 = userCreator("Tim", 5)
+
+// 6. user1's score is incremented
+user1.increment()
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * @{EXAMPLE_2} : Use the prototype chain
+*/ 
+
+// 1. Declare userCreator and save it in global memory
+function userCreator(name, score){
+  const newUser = Object.create(userFunctionStore)
+  newUser.name = name
+  newUser.score = score
+  return newUser
+}
+
+// 2. Declare userFunctionStore obj in global memory, and store both increment and login functions
+//    inside.
+const userFunctionStore = {
+  increment: function(){ this.score++ },
+  login: function(){ console.log("Logged In") }
+}
+
+// 3. user 1 declared and userCreator is pushed to callstack creating a new execution context.
+// 4. In userCreator the following occurs:
+//   *. An empty object is created and is linked to the userFunctionStore via its hidden __proto__ property
+//   *. name is added and assigned the argument value
+//   *. score is added and assigned the argument score
+//   *. The newUser object is returned and assigned to the constant user1.
+const user1 = userCreator("Will", 3)
+// 5. userCreator popped off of callstack
+// 6. user 2 declared and userCreator is pushed to callstack creating a new execution context.
+// 7. Steps 4 & 5 repeated
+const user2 = userCreator("Tim", 5)
+// 8. increment is called and JS does not find the increment function in the user1 object, SO:
+//    * JS checks the hidden object property __proto__ next, which is a reference to the obj 
+//      userFunctionStore, and there increment is found, called, and a new execution context
+//      is created.
+// 9. Every execution context gets an implicit parameter named 'this' in its local memory. 'this'
+//    refers to the object/data the function was called on, OR, in the case of a global function not
+//    a method, it refers to the global window object.  So since 'this' will reference user1, user1's
+//    score gets incremented while user2's stays the same.
+user1.increment()
+
+// If you were to call this
+user1.hasOwnProperty("score")
+// JavaScript first checks the object for the "hasOwnProperty method"
+// Then it will check the userFunctionStore object that was assigned as the __proto__ for user1.
+// Then it will check __proto__ of user which will be the object prototype object where that function is stored.
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * @{EXAMPLE_3}
+*/ 
+
+function userCreator(name, score){
+  const newUser = Object.create(userFunctionStore)
+  newUser.name = name
+  newUser.score = score
+  return newUser
+}
+
+const userFunctionStore = {
+  increment: function(){
+    function add1(){ this.score++ }
+    // if I say this:  add1.call(this), then this will be assigned correctly inside of add1
+    // referencing the `this` that increment is using.
+    add1()
+  }
+}
+
+const user1 = userCreator("Will", 3)
+const user2 = userCreator("Tim", 5)
+// Everything works the same the example 2 until we call this increment function
+// 1. An execution context is created
+// 2. `this` is set to reference user1.
+// 3. add1 is saved in local memory
+// 4. New execution context is created for add1 call
+// 5. this.score is run, but `this` in side of this nested function is actually the global window
+//    object, now the user1 object due.
+//    * So how did they use to deal with this?  They use to declare a variable 'that' in the increment
+//      execution context and assign it to "this", so that in the nested function they could say
+//      that.score++ and still reference 'this' through closure.
+user1.increment()
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * @{EXAMPLE_4}: The `new` keyword
+*/ 
+
+// 1. function userCreator is stored in global memory
+function userCreator(name, score){
+  this.name = name
+  this.score = score
+}
+
+// 2. checking of the userCreator prototype object (by default all function prototype objects are empty)
+userCreator.prototype // {}
+// 3. Add a method called increment to the function's prototype object
+//    Since the `new` keyword is being used, any object created by this function will have its
+//    __proto__ property reference the prototype object on the function, therefor giving all
+//    objects access to the singular instance of the increment method.
+userCreator.prototype.increment = function(){
+  this.score++
+}
+
+
+const user1 = new userCreator("Will", 3)
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * @{EXAMPLE_5} : Functions are both objects and functions
+*/ 
+ 
+function multiplyBy2(num){
+  return num * 2
+}
+
+multiplyBy2.stored = 5
+multiplyBy2(3) // 6
+multiplyBy2.prototype // {}
+
+// We could use the fact that all functions have a default property 'prototype' on their object
+// version, (itself an object) - to replace our 'functionStore' object.
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * @{EXAMPLE_6} : Class, the syntatic surgar 
+*/  
+// This does the exact same thing that example 4 does, just with different syntax to resemble
+// closer to how other OOP languages do this.  However under the hood, JS is handling all of 
+// these relationships in a much different way than OOP languages.
+
+class UserCreator {
+  constructor(name, score){
+    this.name = name
+    this.score = score
+  }
+  increment(){ this.score++ }
+  login(){ console.log("Logged In")}
+}
+
+const user1 = new UserCreator("Will", 5)
+user1.increment()
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
