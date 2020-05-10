@@ -4,8 +4,8 @@ import { navigate } from "@reach/router";
 import Carousel from "./Carousel";
 import ErrorBoundary from "./ErrorBoundary";
 import ThemeContext from "./ThemeContext";
-import _ from "lodash";
-import moment from "moment";
+// import _ from "lodash";
+// import moment from "moment";
 
 const Modal = lazy(() => import("./Modal.js"));
 
@@ -19,9 +19,7 @@ class Details extends React.Component {
           url: animal.url,
           name: animal.name,
           animal: animal.type,
-          location: `${animal.contact.address.city}, ${
-            animal.contact.address.state
-          }`,
+          location: `${animal.contact.address.city}, ${animal.contact.address.state}`,
           description: animal.description,
           media: animal.photos,
           breed: animal.breeds.primary,

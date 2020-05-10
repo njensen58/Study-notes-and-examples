@@ -17,6 +17,3 @@
   # Almost every first line of any recursive function you write will be the `base case`.
     * The `base case` is where you set when you want the recursion to stop, like setting up
       the boolean for a while loop, or the i < num in a for loop.
-      
-
-    
